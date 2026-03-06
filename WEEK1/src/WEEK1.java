@@ -1,74 +1,60 @@
+import java.util.*;
 
-    import java.util.*;
+class WEEK1 {
 
-     class WEEK1 {
-        private HashMap<String, Integer> usernameMap;
-        private HashMap<String, Integer> attemptFrequency;
+    private HashMap<String, Integer> stockMap;
+    private LinkedHashMap<Integer, String> waitingList;
 
-        public WEEK1() {
-            usernameMap = new HashMap<>();
-            attemptFrequency = new HashMap<>();
+    public WEEK1() {
+        stockMap = new HashMap<>();
+        waitingList = new LinkedHashMap<>();
+    }
+
+    public void addProduct(String productId, int stock) {
+        stockMap.put(productId, stock);
+    }
+
+    public String checkStock(String productId) {
+        if (stockMap.containsKey(productId)) {
+            return stockMap.get(productId) + " units available";
+        }
+        return "Product not found";
+    }
+
+    public synchronized String purchaseItem(String productId, int userId) {
+
+        if (!stockMap.containsKey(productId)) {
+            return "Product not found";
         }
 
-        public boolean checkAvailability(String username) {
-            attemptFrequency.put(username, Integer.valueOf(attemptFrequency.getOrDefault(username, Integer.valueOf(0)) + 1));
+        int stock = stockMap.get(productId);
 
-            if (usernameMap.containsKey(username)) {
-                return false;
-            }
-
-            return true;
+        if (stock > 0) {
+            stockMap.put(productId, stock - 1);
+            return "Success, " + (stock - 1) + " units remaining";
         }
-
-        public void registerUser(String username, int userId) {
-            usernameMap.put(username, Integer.valueOf(userId));
-        }
-
-        public List<String> suggestAlternatives(String username) {
-            List<String> suggestions = new ArrayList<>();
-
-            suggestions.add(username + "1");
-            suggestions.add(username + "2");
-            suggestions.add(username + "123");
-
-            if (username.contains("_")) {
-                suggestions.add(username.replace("_", "."));
-            }
-
-            return suggestions;
-        }
-
-        public String getMostAttempted() {
-            String mostAttempted = "";
-            int max = 0;
-
-            for (String user : attemptFrequency.keySet()) {
-                if (attemptFrequency.get(user) > max) {
-                    max = attemptFrequency.get(user);
-                    mostAttempted = user;
-                }
-            }
-
-            return mostAttempted + " (" + max + " attempts)";
-        }
-
-        public static void main(String[] args) {
-
-            WEEK1 system = new WEEK1();
-
-            system.registerUser("john_doe", 101);
-            system.registerUser("admin", 102);
-
-            System.out.println("Check john_doe: " + system.checkAvailability("john_doe"));
-            System.out.println("Check jane_smith: " + system.checkAvailability("jane_smith"));
-
-            System.out.println("Suggestions: " + system.suggestAlternatives("john_doe"));
-
-            system.checkAvailability("admin");
-            system.checkAvailability("admin");
-            system.checkAvailability("admin");
-
-            System.out.println("Most Attempted Username: " + system.getMostAttempted());
+        else {
+            waitingList.put(userId, productId);
+            return "Added to waiting list, position #" + waitingList.size();
         }
     }
+
+    public static void main(String[] args) {
+
+        WEEK1 system = new WEEK1();
+
+        system.addProduct("IPHONE15_256GB", 100);
+
+        System.out.println(system.checkStock("IPHONE15_256GB"));
+
+        System.out.println(system.purchaseItem("IPHONE15_256GB", 12345));
+        System.out.println(system.purchaseItem("IPHONE15_256GB", 67890));
+
+        for (int i = 0; i < 100; i++) {
+            system.purchaseItem("IPHONE15_256GB", i);
+        }
+
+        System.out.println(system.purchaseItem("IPHONE15_256GB", 99999));
+    }
+}
 
